@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sun, Moon, ArrowUp, Plus, Trash2, RotateCcw, PenLine } from 'lucide-react';
+import { Sun, Moon, ArrowUp } from 'lucide-react';
 import { blocks as defaultBlocks, hero } from './data/content';
 import CategoryCard from './components/CategoryCard';
 import CollapsibleTOC from './components/CollapsibleTOC';
@@ -76,7 +76,7 @@ export default function App() {
   const [showBackTop, setShowBackTop] = useState(false);
   const [activeBlock, setActiveBlock] = useState('');
   const [editCount, setEditCount] = useState(0);
-  const [editMode, setEditMode] = useState(false);
+  const editMode = false;  // 编辑功能已关闭，纯展示模式
   const [headerScrolled, setHeaderScrolled] = useState(false);
 
   // 持久化
@@ -205,22 +205,8 @@ export default function App() {
         <span className="font-bold text-lg gradient-text">Stale's Knowledge Base</span>
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            {editCount > 0 ? `已编辑 ${editCount} 处 · 自动保存` : "Stale's Knowledge Base"}
+            Stale's Knowledge Base
           </span>
-          <button
-            onClick={() => setEditMode(m => !m)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${editMode ? '' : 'animate-pulse'}`}
-            style={editMode
-              ? { color: '#fff', background: 'linear-gradient(135deg, var(--accent), var(--purple))', boxShadow: 'var(--shadow-glow)' }
-              : { color: 'var(--accent)', backgroundColor: 'var(--accent-bg)', border: '1px solid var(--accent)' }
-            }
-          >
-            <PenLine size={13} />
-            {editMode ? '退出编辑' : '编辑模式'}
-          </button>
-          <button onClick={resetData} className="p-1.5 rounded-lg transition-all hover:opacity-70" style={{ color: 'var(--text-tertiary)' }} title="重置数据">
-            <RotateCcw size={14} />
-          </button>
           <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
             className="p-2 rounded-lg transition-all hover:scale-110" style={{ color: 'var(--text-secondary)' }}>
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -274,35 +260,15 @@ export default function App() {
                 onImageClick={setLightbox}
                 editMode={editMode}
               />
-              {/* 删除大模块按钮——仅编辑模式 */}
-              {editMode && blocks.length > 1 && (
-                <button
-                  onClick={() => deleteBlock(block.id)}
-                  className="opacity-0 group-hover/outer:opacity-100 absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10"
-                  style={{ backgroundColor: 'var(--danger)', color: '#fff' }}
-                  title="删除此板块"
-                ><Trash2 size={13} /></button>
-              )}
             </div>
           ))}
         </div>
-
-        {/* 添加大模块按钮——仅编辑模式 */}
-        {editMode && (
-          <button onClick={addBlock}
-          className="add-block-btn w-full mt-5 flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-medium transition-all border-2 border-dashed"
-          style={{ color: 'var(--accent)', borderColor: 'var(--border-color)', backgroundColor: 'var(--accent-bg)' }}>
-          <Plus size={18} /> 添加新板块
-        </button>
-        )}
 
         <footer className="mt-16 pt-8 pb-8 border-t text-center"
           style={{ borderColor: 'var(--border-color)' }}>
           <p className="text-xs font-semibold gradient-text mb-3">Stale's Knowledge Base</p>
           <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
-            飞书风格块编辑器 · {' '}
-            <kbd>⌘B</kbd> <kbd>⌘I</kbd> <kbd>⌘U</kbd> 格式化 · {' '}
-            <kbd>/</kbd> 插入块 · 拖拽排序
+            Stale's Knowledge Base · 多模态大模型知识沉淀站点
           </p>
         </footer>
       </main>
