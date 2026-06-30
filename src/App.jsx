@@ -51,7 +51,7 @@ function migrateOldData(oldBlocks) {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [blocks, setBlocks] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -240,7 +240,7 @@ export default function App() {
               ))}
             </div>
             <div className="ml-auto flex-shrink-0">
-              <img src="/logo.svg" alt="Stale's Knowledge" className="h-28 lg:h-32 w-auto opacity-90 hover:opacity-100 transition-all duration-500 hover:scale-105 hover:drop-shadow-[0_0_12px_var(--accent-glow)]" />
+              <img src="logo.svg" alt="Stale's Knowledge" className="h-28 lg:h-32 w-auto opacity-90 hover:opacity-100 transition-all duration-500 hover:scale-105 hover:drop-shadow-[0_0_12px_var(--accent-glow)]" />
             </div>
           </div>
         </div>
