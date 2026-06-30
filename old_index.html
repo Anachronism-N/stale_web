@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识沉淀 - 多模态大模型</title>
+    <style>
+        /* ========== CSS变量（主题） ========== */
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-card: #1c2128;
+            --border-color: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --accent-bg: rgba(88, 166, 255, 0.1);
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+            --sidebar-width: 260px;
+            --header-height: 60px;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --code-bg: #21262d;
+        }
+
+        /* 浅色主题 */
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f8fa;
+            --bg-tertiary: #eaeef2;
+            --bg-card: #ffffff;
+            --border-color: #d0d7de;
+            --text-primary: #1f2328;
+            --text-secondary: #656d76;
+            --text-tertiary: #8b949e;
+            --accent: #0969da;
+            --accent-hover: #0550ae;
+            --accent-bg: rgba(9, 105, 218, 0.08);
+            --success: #1a7f37;
+            --warning: #9a6700;
+            --danger: #cf222e;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --code-bg: #f6f8fa;
+        }
+
+        /* ========== 全局样式 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ========== 顶部导航栏 ========== */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .top-header .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+        }
+
+        .top-header .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        /* 汉堡菜单按钮 */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .menu-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        /* ========== 侧边导航 ========== */
+        .sidebar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 20px 0;
+            z-index: 90;
+            transition: transform 0.3s;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .sidebar .nav-section {
+            padding: 4px 20px;
+            margin-top: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-tertiary);
+            font-weight: 600;
+        }
+
+        .sidebar .nav-item {
+            display: block;
+            padding: 7px 20px 7px 28px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13.5px;
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .sidebar .nav-item:hover {
+            color: var(--text-primary);
+            background: var(--accent-bg);
+        }
+
+        .sidebar .nav-item.active {
+            color: var(--accent);
+            border-left-color: var(--accent);
+            background: var(--accent-bg);
+        }
+
+        .sidebar .nav-item.chapter {
+            padding-left: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* ========== 主内容区 ========== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 40px 48px;
+            max-width: 960px;
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        /* 章节标题 */
+        .section {
+            margin-bottom: 64px;
+            scroll-margin-top: 80px;
+        }
+
+        .section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+            letter-spacing: -0.5px;
+        }
+
+        .section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 32px 0 16px;
+            padding-left: 12px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* 术语卡片 */
+        .term-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .term-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 18px;
+            transition: all 0.2s;
+        }
+
+        .term-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+        }
+
+        .term-card .term-name {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .term-card .term-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* 流程步骤 */
+        .process-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .process-step {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .process-step .step-number {
+            position: absolute;
+            top: -14px;
+            left: 20px;
+            background: var(--accent);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .process-step h4 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .process-step ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .process-step ul li {
+            padding: 5px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .process-step ul li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .process-step .purpose {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: var(--accent-bg);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-left: 3px solid var(--accent);
+        }
+
+        /* 模型列表 */
+        .model-group {
+            margin-top: 16px;
+        }
+
+        .model-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .model-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .model-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+        }
+
+        .model-card .model-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .model-card .model-tag {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .tag-closed {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--danger);
+        }
+
+        .tag-open {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--success);
+        }
+
+        .tag-domestic {
+            background: rgba(210, 153, 34, 0.15);
+            color: var(--warning);
+        }
+
+        .model-card .model-desc {
+            color: var(--text-secondary);
+            font-size: 12.5px;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        /* 表格样式 */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        table th {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 12px 16px;
+            text-align: left;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table tr:hover td {
+            background: var(--accent-bg);
+        }
+
+        /* 笔记详情 */
+        .note-detail {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .note-detail h4 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .note-detail .meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        .note-detail .note-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .note-detail .note-list li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .note-detail .note-list li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .note-detail .highlight-box {
+            background: var(--accent-bg);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-left: 3px solid var(--accent);
+        }
+
+        /* 内容段落 */
+        .content-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.8;
+            margin: 10px 0;
+        }
+
+        .content-text strong {
+            color: var(--text-primary);
+        }
+
+        /* 回到顶部 */
+        .back-to-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 24px 16px;
+            }
+
+            .term-grid,
+            .model-list {
+                grid-template-columns: 1fr;
+            }
+
+            .section h2 {
+                font-size: 22px;
+            }
+
+            .section h3 {
+                font-size: 17px;
+            }
+        }
+
+        /* 打印样式 */
+        @media print {
+            .sidebar,
+            .top-header,
+            .back-to-top,
+            .theme-toggle {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 0;
+            }
+        }
+        /* ========== 美化增强 ========== */
+        /* 滚动进度条 */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #a371f7, #f778ba);
+            z-index: 200;
+            transition: width 0.1s linear;
+        }
+
+        /* Hero 区域 */
+        .hero {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 48px 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-bg) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), #a371f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 600px;
+            line-height: 1.7;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero .hero-stats {
+            display: flex;
+            gap: 32px;
+            margin-top: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero .hero-stat {
+            text-align: center;
+        }
+
+        .hero .hero-stat .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .hero .hero-stat .stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        /* 图片容器 */
+        .image-container {
+            margin: 24px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .image-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-container .image-overlay {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .image-container:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .image-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        /* 图片灯箱 */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(8px);
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        /* 卡片增强 */
+        .term-card {
+            position: relative;
+        }
+
+        .term-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--accent), transparent);
+            border-radius: 8px 0 0 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .term-card:hover::before {
+            opacity: 1;
+        }
+
+        /* 章节标题底部装饰线 */
+        .section h2 {
+            position: relative;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #a371f7);
+            border-radius: 2px;
+        }
+
+        /* 淡入动画 */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* 模型卡片底边渐变 */
+        .model-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .model-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #a371f7);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .model-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        /* 表格阴影 */
+        .table-wrapper {
+            box-shadow: var(--shadow);
+        }
+
+        /* 响应式补充 */
+        @media (max-width: 768px) {
+            .hero { padding: 32px 24px; }
+            .hero h1 { font-size: 24px; }
+            .hero .hero-stats { gap: 20px; flex-wrap: wrap; }
+            .image-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== 顶部导航栏 ==================== -->
+    <header class="top-header">
+        <div>
+            <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
+            <span class="logo">📚 知识沉淀</span>
+        </div>
+        <div class="header-actions">
+            <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">🌙</button>
+        </div>
+    </header>
+
+    <!-- ==================== 侧边导航 ==================== -->
+    <nav class="sidebar" id="sidebar">
+        <div class="nav-section">导航目录</div>
+        <a class="nav-item chapter" href="#ch1">第1章 核心专业名词</a>
+        <a class="nav-item" href="#ch1-1">基础架构</a>
+        <a class="nav-item" href="#ch1-2">多模态核心</a>
+        <a class="nav-item" href="#ch1-3">生成模型</a>
+        <a class="nav-item" href="#ch1-4">训练与对齐</a>
+        <a class="nav-item" href="#ch1-5">语音与交互</a>
+        <a class="nav-item" href="#ch1-6">评测与工程</a>
+
+        <a class="nav-item chapter" href="#ch2">第2章 多模态大模型完整产生全流程</a>
+        <a class="nav-item" href="#ch2-1">模态数据构建</a>
+        <a class="nav-item" href="#ch2-2">预训练</a>
+        <a class="nav-item" href="#ch2-3">Mid-train</a>
+        <a class="nav-item" href="#ch2-4">后训练(SFT)</a>
+        <a class="nav-item" href="#ch2-5">强化学习</a>
+        <a class="nav-item" href="#ch2-6">Infra算力加速</a>
+
+        <a class="nav-item chapter" href="#ch3">第3章 主流技术路线+第一梯队</a>
+        <a class="nav-item" href="#ch3-1">多模态理解与生成</a>
+        <a class="nav-item" href="#ch3-2">Image/Video</a>
+        <a class="nav-item" href="#ch3-3">语音多模态</a>
+        <a class="nav-item" href="#ch3-4">3D生成</a>
+        <a class="nav-item" href="#ch3-5">世界模型</a>
+        <a class="nav-item" href="#ch3-6">强化学习</a>
+
+        <a class="nav-item chapter" href="#ch4">第4章 大模型架构</a>
+        <a class="nav-item" href="#ch4-1">神经网络传播机制</a>
+        <a class="nav-item" href="#ch4-2">计算神经网络参数</a>
+        <a class="nav-item" href="#ch4-3">泛化能力与过拟合</a>
+        <a class="nav-item" href="#ch4-4">训练加速与优化</a>
+        <a class="nav-item" href="#ch4-5">Transformer核心原理</a>
+
+        <a class="nav-item chapter" href="#ch5">第5章 行业发展和看法</a>
+        <a class="nav-item" href="#ch5-1">Image/Video</a>
+        <a class="nav-item" href="#ch5-2">Agent</a>
+        <a class="nav-item" href="#ch5-3">3D</a>
+        <a class="nav-item" href="#ch5-4">语音</a>
+        <a class="nav-item" href="#ch5-5">世界模型</a>
+        <a class="nav-item" href="#ch5-6">强化学习</a>
+        <a class="nav-item" href="#ch5-7">VLA</a>
+        <a class="nav-item" href="#ch5-8">具身</a>
+
+        <a class="nav-item chapter" href="#ch6">第6章 论文分区</a>
+        <a class="nav-item" href="#ch6-1">CCF分级</a>
+        <a class="nav-item" href="#ch6-2">SCI分区</a>
+
+        <a class="nav-item chapter" href="#ch7">第7章 模型学习笔记</a>
+        <a class="nav-item" href="#ch7-1">Seedance 2.0</a>
+        <a class="nav-item" href="#ch7-2">Seedream 5.0 Lite</a>
+        <a class="nav-item" href="#ch7-3">Seed3D 2.0</a>
+    </nav>
+
+    <!-- ==================== 主内容区 ==================== -->
+<main class="main-content">
+
+        <!-- 滚动进度条 -->
+        <div class="scroll-progress" id="scrollProgress"></div>
+
+        <!-- Hero 区域 -->
+        <div class="hero">
+            <h1>多模态大模型 · 知识体系</h1>
+            <p>覆盖从基础架构到前沿趋势的完整知识沉淀，包含核心名词、训练全流程、主流技术路线、模型架构原理、行业发展判断及论文发表指南。</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="stat-number">7</div>
+                    <div class="stat-label">知识章节</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-number">30+</div>
+                    <div class="stat-label">核心名词</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">技术方向</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-number">10</div>
+                    <div class="stat-label">架构图解</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第1章：核心专业名词 -->
+        <section class="section" id="ch1">
+            <h2>第1章 核心专业名词</h2>
+
+            <!-- 1.1 基础架构 -->
+            <h3 id="ch1-1">基础架构</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">Transformer</div>
+                    <div class="term-desc">大模型统一底层架构</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">ViT</div>
+                    <div class="term-desc">Vision Transformer，图像分块编码为视觉 token</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">Cross-Attention</div>
+                    <div class="term-desc">跨模态对齐核心，图文/音视频特征交互，上下文连接</div>
+                </div>
+            </div>
+
+            <!-- 1.2 多模态核心 -->
+            <h3 id="ch1-2">多模态核心</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">VLM</div>
+                    <div class="term-desc">视觉语言大模型，看图理解、问答、推理（目前在LLM）</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">VLA</div>
+                    <div class="term-desc">Vision-Language-Action，视觉-语言-动作模型，看图做动作</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">CLIP</div>
+                    <div class="term-desc">图文对比学习，多模态对齐底座</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">BLIP-2</div>
+                    <div class="term-desc">高效跨模态桥接，冻结 LLM 训适配器</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">Omni</div>
+                    <div class="term-desc">原生全模态，统一文本/图像/语音/视频输入输出</div>
+                </div>
+            </div>
+
+            <!-- 1.3 生成模型 -->
+            <h3 id="ch1-3">生成模型</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">Diffusion</div>
+                    <div class="term-desc">扩散模型，文生图/视频主流技术</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">DiT</div>
+                    <div class="term-desc">去噪主干，Transformer 取代 U-Net，新一代扩散架构（主流）</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">VAE</div>
+                    <div class="term-desc">图像压缩编码，降显存、提速度</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">ControlNet</div>
+                    <div class="term-desc">生成控制模块，姿态/边缘/参考图约束</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">Transfusion</div>
+                    <div class="term-desc">统一 AR 语言建模 + Diffusion 视觉生成</div>
+                </div>
+            </div>
+
+            <!-- 1.4 训练与对齐 -->
+            <h3 id="ch1-4">训练与对齐</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">SFT</div>
+                    <div class="term-desc">监督指令微调，让模型遵循指令</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">RLHF</div>
+                    <div class="term-desc">人类反馈强化学习，偏好对齐</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">DPO</div>
+                    <div class="term-desc">直接偏好优化，当前主流首选</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">GRPO/RLVR/KTO</div>
+                    <div class="term-desc">新一代偏好对齐，更快更稳</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">LoRA/QLoRA</div>
+                    <div class="term-desc">低秩适配，轻量微调、省显存</div>
+                </div>
+            </div>
+
+            <!-- 1.5 语音与交互 -->
+            <h3 id="ch1-5">语音与交互</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">ASR</div>
+                    <div class="term-desc">语音→文本</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">TTS</div>
+                    <div class="term-desc">文本→语音</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">Codec</div>
+                    <div class="term-desc">音频 token 化，融入大模型</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">VAD</div>
+                    <div class="term-desc">人声检测，控制识别起止</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">Full-Duplex</div>
+                    <div class="term-desc">全双工，可打断、流式对话</div>
+                </div>
+            </div>
+
+            <!-- 1.6 评测与工程 -->
+            <h3 id="ch1-6">评测与工程</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">Hallucination</div>
+                    <div class="term-desc">幻觉，图文不符、无中生有</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">MMBench/MMMU</div>
+                    <div class="term-desc">多模态综合理解基准</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">TextVQA/DocVQA/ChartQA</div>
+                    <div class="term-desc">OCR/文档/图表评测</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">POPE</div>
+                    <div class="term-desc">幻觉检测标准</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第2章：多模态大模型完整产生全流程 -->
+        <section class="section" id="ch2">
+            <h2>第2章 多模态大模型完整产生全流程</h2>
+            <p class="content-text">总流程：<strong>数据构建 → 预训练 → Mid-train → 后训练(SFT) → 强化学习 → Infra加速</strong></p>
+
+            <div class="process-flow">
+                <!-- 2.1 模态数据构建 -->
+                <div class="process-step" id="ch2-1">
+                    <div class="step-number">1</div>
+                    <h4>模态数据构建</h4>
+                    <ul>
+                        <li>数据源采集：Data提供</li>
+                        <li>数据清洗：去重、过滤低质/违规数据、分辨率/画质筛选、脏样本剔除</li>
+                        <li>跨模态对齐：图片、文本、视频帧语音↔文本一一配对，统一模态语义空间</li>
+                        <li>格式标准化：图片统一尺寸、音频统一采样率、文本分词编码，构建多模态样本库</li>
+                        <li>分层划分：预训练大语料、微调小样本、评测测试集隔离</li>
+                    </ul>
+                    <div class="purpose">
+                        <strong>目的：</strong>给模型提供海量异构跨模态原材料，决定模型上限（数据质量 &gt; 模型结构）。模型具备看懂图片、听懂语音、理解视频内容的基础素材，保证后续训练不会因数据缺陷出现幻觉、理解错位。
+                    </div>
+                </div>
+
+                <!-- 2.2 预训练 -->
+                <div class="process-step" id="ch2-2">
+                    <div class="step-number">2</div>
+                    <h4>预训练（Pre-train）</h4>
+                    <ul>
+                        <li>用海量数据做自监督训练：图文匹配（CLIP）、掩码图像/文本重构、跨模态对比学习</li>
+                        <li>冻结/联合训练视觉编码器+文本LLM主干，打通视觉、文本、音频的共享语义表征</li>
+                        <li>超大batch、多卡分布式训练，拟合通用世界知识</li>
+                    </ul>
+                    <div class="purpose">
+                        <strong>目的：</strong>让模型学习通用跨模态基础知识、常识、空间语义、语言逻辑，搭建通用多模态底座。模型原生具备：看图描述、图文检索、基础图文问答、简单视频理解能力；是后续所有微调能力的基础底座。
+                    </div>
+                </div>
+
+                <!-- 2.3 Mid-train -->
+                <div class="process-step" id="ch2-3">
+                    <div class="step-number">3</div>
+                    <h4>Mid-train（中期训练）</h4>
+                    <ul>
+                        <li>混合优质通用文本及数学、代码、长文本专项数据，重在提升模型基础能力，不优化对话话术</li>
+                    </ul>
+                    <div class="purpose">
+                        <strong>目的：</strong>提升推理、代码能力，扩容上下文，修复预训练缺陷；提前熟悉指令格式、节省标注成本，还可低成本适配行业场景。
+                    </div>
+                </div>
+
+                <!-- 2.4 后训练 -->
+                <div class="process-step" id="ch2-4">
+                    <div class="step-number">4</div>
+                    <h4>后训练（SFT监督微调 / Post-train）</h4>
+                    <ul>
+                        <li>人工精标小批量高质量指令样本：图文问答、画图指令、视频总结、多模态任务指令</li>
+                        <li>用指令数据集微调预训练大模型，对齐人类指令习惯</li>
+                        <li>按需专项微调</li>
+                    </ul>
+                    <div class="purpose">
+                        <strong>目的：</strong>精准跟随用户指令：根据图片回答问题、根据文字生成配图、解析图表数据；消除预训练模型答非所问、输出混乱问题，落地可用的对话多模态能力。
+                    </div>
+                </div>
+
+                <!-- 2.5 强化学习 -->
+                <div class="process-step" id="ch2-5">
+                    <div class="step-number">5</div>
+                    <h4>强化学习（RLHF/RLAIF 多模态强化）</h4>
+                    <ul>
+                        <li>Reward模型训练：人工对模型输出打分排序，训练打分奖励模型</li>
+                        <li>PPO强化迭代：主模型生成多模态答案，奖励模型打分，反向更新模型权重</li>
+                        <li>多模态专项优化：图文生成审美优化、视频问答准确率优化、减少图文幻觉</li>
+                    </ul>
+                    <div class="purpose">
+                        <strong>目的：</strong>在SFT基础上进一步贴合人类偏好，抑制错误输出、优化答案质量。<br>
+                        <strong>能实现：</strong>①大幅降低图文幻觉（看图乱编内容）；②回答更严谨、逻辑性更强，多模态生成结果符合人类审美与事实；③产品级可用，适配C端交互。
+                    </div>
+                </div>
+
+                <!-- 2.6 Infra算力工程加速 -->
+                <div class="process-step" id="ch2-6">
+                    <div class="step-number">6</div>
+                    <h4>Infra 算力工程加速（推理/训练基建优化）</h4>
+                    <ul>
+                        <li><strong>训练侧：</strong>分布式集群、张量并行/流水线并行、混合精度FP16/BF16、梯度累积、算子编译优化</li>
+                        <li><strong>推理侧：</strong>模型量化（INT8/INT4）、KV Cache优化、模型剪枝、编译加速（TRT/TorchInductor）、多卡推理调度、显存优化、动态Batch</li>
+                        <li><strong>配套：</strong>调度框架、存储加速、多模态预处理硬件加速（图片解码GPU加速）</li>
+                    </ul>
+                    <div class="purpose">
+                        <strong>目的：</strong>降低训练/推理成本、提速吞吐，让大模型从实验室落地线上服务。训练：同等卡数训练周期缩短30%~70%。推理：单卡承载更多QPS，图片/视频请求响应从秒级降到几十ms。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第3章：不同方向・主流技术路线 + 第一梯队 -->
+        <section class="section" id="ch3">
+            <h2>第3章 不同方向・主流技术路线 + 第一梯队</h2>
+
+            <!-- 3.1 多模态理解和生成 -->
+            <h3 id="ch3-1">多模态理解与生成</h3>
+
+            <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                <img src="images/img_7.png" alt="多模态理解与生成架构图" loading="lazy">
+                <div class="image-overlay">🔍</div>
+            </div>
+
+            <h3 id="ch3-2">Image/Video</h3>
+            <p class="content-text">图片、视频、音频等生成都是基于<strong>DiT框架</strong>。DiT 换成Transformer：把整张图切成一堆小方块，全部排成一串文字。图片压缩变小块，全部变成 token，互相串门（自注意力），整张图互通信息。带上文字提示、时间参数，一点点擦掉噪声出图。</p>
+
+            <div class="model-group">
+                <h4 style="color:var(--text-primary);margin-bottom:8px;">第一梯队模型</h4>
+                <div class="model-list">
+                    <div class="model-card">
+                        <div class="model-name">Sora</div>
+                        <span class="model-tag tag-closed">闭源顶流</span>
+                        <div class="model-desc">时空 VAE + 时空 DiT + 统一 Patch 建模</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Runway Gen-3</div>
+                        <span class="model-tag tag-closed">闭源顶流</span>
+                        <div class="model-desc">商业级视频生成</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Luma Dream Machine</div>
+                        <span class="model-tag tag-closed">闭源顶流</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">快手 Kling</div>
+                        <span class="model-tag tag-closed">闭源顶流</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">CogVideoX</div>
+                        <span class="model-tag tag-open">开源SOTA</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Open-Sora</div>
+                        <span class="model-tag tag-open">开源SOTA</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">HunyuanVideo</div>
+                        <span class="model-tag tag-open">开源SOTA</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">ModelScope-T2V</div>
+                        <span class="model-tag tag-open">开源SOTA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表1：视频模型公司对比 -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>代表公司</th>
+                            <th>核心模型</th>
+                            <th>核心优势</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>字节跳动、快手</td>
+                            <td>Seedance、可灵Kling</td>
+                            <td>综合画质、流畅度国内第一，人物动态、写实场景能力突出</td>
+                        </tr>
+                        <tr>
+                            <td>阿里、百度、腾讯</td>
+                            <td>HappyHorse通义视频、文心智能视频、混元视频生成</td>
+                            <td>短高清视频能力成熟，逐步突破长视频，一体化创作能力强</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 3.3 语音多模态 -->
+            <h3 id="ch3-3">语音多模态（ASR + TTS + Audio-LLM）</h3>
+            <p class="content-text">
+                <strong>语音理解：</strong>ASR 语音转文字<br>
+                <strong>语音生成：</strong>TTS 文字转语音<br>
+                <strong>语音对话：</strong>Omni（全双工：音+文+图像一体化输入输出，可实现打断人说话）<br>
+                <strong>统一 Token 化（核心）：</strong>文本 + 图像 Patch + 语音 Codec + 视频时序→同一序列<br>
+                <strong>统一 Transformer：</strong>单模型端到端处理所有模态，任意入→任意出<br>
+                <strong>流式全双工：</strong>实时打断、并发 IO、低延迟 &lt; 300ms
+            </p>
+
+            <div class="model-group">
+                <h4 style="color:var(--text-primary);margin-bottom:8px;">第一梯队模型</h4>
+                <div class="model-list">
+                    <div class="model-card">
+                        <div class="model-name">GPT-4o</div>
+                        <span class="model-tag tag-closed">闭源顶流</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Gemini 3.1 Omni</div>
+                        <span class="model-tag tag-closed">闭源顶流</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Claude 4 Omni</div>
+                        <span class="model-tag tag-closed">闭源顶流</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Qwen3.5-Omni</div>
+                        <span class="model-tag tag-open">开源SOTA</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">MiniCPM-o 4.5</div>
+                        <span class="model-tag tag-open">开源SOTA</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Ming-Omni</div>
+                        <span class="model-tag tag-open">开源SOTA</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">混元 Omni</div>
+                        <span class="model-tag tag-domestic">国产头部</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">豆包 Omni 系列</div>
+                        <span class="model-tag tag-domestic">国产头部</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3.4 3D生成 -->
+            <h3 id="ch3-4">3D 生成（文生3D / 图生3D / 重建）</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">3D 理解</div>
+                    <div class="term-desc">识别 3D 结构、姿态、空间关系、材质、尺寸、逻辑合理性</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">3D 生成</div>
+                    <div class="term-desc">直接产出 3D 几何 / 结构 / 模型</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">3D 重建</div>
+                    <div class="term-desc">从已有 2D 画面还原真实三维空间结构</div>
+                </div>
+            </div>
+
+            <!-- 3.5 世界模型 -->
+            <h3 id="ch3-5">世界模型（World Model）</h3>
+            <h4>主流技术路线</h4>
+            <div class="term-grid" style="margin-top:12px;">
+                <div class="term-card">
+                    <div class="term-name">视频生成模拟器（Sora路线）</div>
+                    <div class="term-desc">视频 DiT 学物理规律，用于预测/模拟。脑子里预演物理规则、因果、未来会发生什么的能力。</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">潜空间预测（JEPA路线）</div>
+                    <div class="term-desc">自监督学习隐状态预测，高效规划</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">3D结构 + 物理仿真</div>
+                    <div class="term-desc">重建稳定 3D 环境，支持交互与物理因果</div>
+                </div>
+            </div>
+
+            <h4 style="margin-top:20px;">未来发展趋势</h4>
+            <ul style="color:var(--text-secondary);font-size:14px;padding-left:20px;margin-top:8px;">
+                <li>更懂真实物理：解决画面穿模、物体悬浮问题，贴合现实规则</li>
+                <li>语言+世界模型双结合：LLM负责动脑说话，世界模型负责看懂、实操、预判</li>
+                <li>从拍视频到可交互世界：不再只生成视频，能搭建可操控的3D虚拟场景，适配机器人、自动驾驶</li>
+            </ul>
+
+            <div class="model-group">
+                <h4 style="color:var(--text-primary);margin:16px 0 8px;">第一梯队模型</h4>
+                <div class="model-list">
+                    <div class="model-card">
+                        <div class="model-name">OpenAI（Sora）</div>
+                        <span class="model-tag tag-closed">视频生成路线</span>
+                        <div class="model-desc">主打画面逼真，效果好看，大众最熟悉</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Google DeepMind（Genie、DreamerV3）</div>
+                        <span class="model-tag tag-closed">机器人RL路线</span>
+                        <div class="model-desc">专门让AI模拟练手，适合机器人、智能体干活</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">Meta（JEPA）</div>
+                        <span class="model-tag tag-closed">抽象理解路线</span>
+                        <div class="model-desc">不拼画质，专攻懂因果、懂规律，效率最高、最智能</div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-name">英伟达（Cosmos）</div>
+                        <span class="model-tag tag-closed">对象中心路线</span>
+                        <div class="model-desc">把世界拆成一个个物体，精准判断位置、碰撞、运动，适合自动驾驶</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3.6 强化学习 -->
+            <h3 id="ch3-6">强化学习</h3>
+            <p class="content-text">偏预言进行强化训练，期望实现自动进行监督学习和偏好对齐，可用于3D生成、世界模型等。</p>
+        </section>
+
+        <!-- 第4章：大模型架构 -->
+        <section class="section" id="ch4">
+            <h2>第4章 大模型架构</h2>
+
+            <h3 id="ch4-1">神经网络传播机制</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">前向传播</div>
+                    <div class="term-desc">分步骤进行，通过x算出</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">反向传播</div>
+                    <div class="term-desc">计算损失函数关于每个参数的梯度，根据梯度变化调整参数</div>
+                </div>
+            </div>
+
+            <div class="image-row">
+                <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                    <img src="images/img_5.png" alt="神经网络传播机制图1" loading="lazy">
+                    <div class="image-overlay">🔍</div>
+                </div>
+                <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                    <img src="images/img_3.png" alt="神经网络传播机制图2" loading="lazy">
+                    <div class="image-overlay">🔍</div>
+                </div>
+                <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                    <img src="images/img_1.png" alt="神经网络传播机制图3" loading="lazy">
+                    <div class="image-overlay">🔍</div>
+                </div>
+            </div>
+
+            <h3 id="ch4-2">计算神经网络的参数</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">梯度下降</div>
+                    <div class="term-desc">调整w，b使损失函数减小</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">链式法则</div>
+                    <div class="term-desc">各层间关系较简单，改变w1，看损失函数L变化多少，从输入层到隐藏层到传输层</div>
+                </div>
+            </div>
+
+            <h3 id="ch4-3">模型泛化能力和过拟合问题</h3>
+
+            <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                <img src="images/img_9.png" alt="过拟合与泛化能力示意图" loading="lazy">
+                <div class="image-overlay">🔍</div>
+            </div>
+
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">泛化能力</div>
+                    <div class="term-desc">模型在新数据上的预测能力</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">过拟合</div>
+                    <div class="term-desc">模型在训练集效果好，新数据预测不准，泛化能力差</div>
+                </div>
+            </div>
+            <p class="content-text"><strong>过拟合的原因：</strong>模型过于复杂，学习到训练数据中的噪声和随机波动，导致适配训练集、不适配新数据。</p>
+            <p class="content-text"><strong>过拟合解决方法：</strong></p>
+            <ul style="color:var(--text-secondary);font-size:14px;padding-left:20px;">
+                <li><strong>数据和模型：</strong>数据量增大/简化模型/数据增强（对图像进行旋转、翻转、加噪）</li>
+                <li><strong>增强数据鲁棒性：</strong>数据增强还可以实现不因为数据的小变化而对结果产生很大波动</li>
+                <li><strong>训练过程：</strong>抑制参数的增长，提前结束</li>
+                <li><strong>Dropout：</strong>训练中随机丢弃部分参数，削弱参数依赖，有效缓解过拟合</li>
+            </ul>
+
+            <div class="image-row">
+                <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                    <img src="images/img_8.png" alt="训练优化与正则化图1" loading="lazy">
+                    <div class="image-overlay">🔍</div>
+                </div>
+                <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                    <img src="images/img_6.png" alt="训练优化与正则化图2" loading="lazy">
+                    <div class="image-overlay">🔍</div>
+                </div>
+            </div>
+
+            <h3 id="ch4-4">网络训练加速与运算优化</h3>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">矩阵运算加速</div>
+                    <div class="term-desc">神经网络以矩阵运算为核心，可利用GPU并行计算，大幅提升训练、推理速度</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">CNN卷积运算优化</div>
+                    <div class="term-desc">CNN卷积运算转化为矩阵计算，大幅减少计算量；相比基础词嵌入，新增隐藏状态，特征提取能力更强</div>
+                </div>
+            </div>
+
+            <div class="image-row">
+                <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                    <img src="images/img_4.png" alt="CNN卷积运算优化图1" loading="lazy">
+                    <div class="image-overlay">🔍</div>
+                </div>
+                <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                    <img src="images/img_2.png" alt="CNN卷积运算优化图2" loading="lazy">
+                    <div class="image-overlay">🔍</div>
+                </div>
+            </div>
+
+            <h3 id="ch4-5">Transformer 核心原理</h3>
+            <p class="content-text">Transformer核心是<strong>注意力机制</strong>，可捕捉上下文关联，解决梯度消失问题，核心流程：</p>
+            <div class="term-grid">
+                <div class="term-card">
+                    <div class="term-name">词嵌入</div>
+                    <div class="term-desc">将文字转为向量</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">位置编码</div>
+                    <div class="term-desc">给词向量添加位置信息，识别序列顺序</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">Q/K/V向量</div>
+                    <div class="term-desc">Q、K计算词语相似度，V存储原始特征，结合后得到上下文特征</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">可训练权重矩阵</div>
+                    <div class="term-desc">提升特征提取灵活性</div>
+                </div>
+                <div class="term-card">
+                    <div class="term-name">多头注意力</div>
+                    <div class="term-desc">多组权重并行学习，多角度捕捉上下文语义</div>
+                </div>
+            </div>
+
+            <div class="image-container" onclick="openLightbox(this.querySelector('img').src)">
+                <img src="images/img_10.png" alt="Transformer 核心架构图" loading="lazy">
+                <div class="image-overlay">🔍</div>
+            </div>
+        </section>
+
+        <!-- 第5章：行业发展和看法 -->
+        <section class="section" id="ch5">
+            <h2>第5章 行业发展和看法</h2>
+
+            <h3 id="ch5-1">Image/Video</h3>
+            <p class="content-text">视频 RL 落地难度较高：试用多款开源奖励模型后发现，模型动态能力提升的同时，画面画质会明显下降。业内现阶段更偏向OPD自蒸馏，而非GRPO，GRPO生态逐步被替代；大模型 SFT 与 RL 的边界也在不断模糊。现有 RL 框架受限于奖励模型，难以进一步提效，因此计划绕过该限制，采用自蒸馏方案挖掘数据价值。</p>
+
+            <h3 id="ch5-2">Agent</h3>
+            <p class="content-text">多模态领域里Domo coding、网页检索类Agent落地实用任务时，仅靠单轮推理无法达成效果，落地需要依托Agent运行环境，配合工具调用以及和环境交互迭代完成训练与执行。</p>
+
+            <h3 id="ch5-3">3D</h3>
+            <p class="content-text"><strong>现存现状：</strong>当下主流3D模型仍依托2D思维构建，普遍采用先把三维场景拆解为二维图像，再反向拼接还原成3D形态的制作逻辑，模型原生缺少高效直接编辑、修改的能力。</p>
+            <p class="content-text"><strong>未来主流趋势：</strong>未来主流方向是2D投影到3D，因为2D资产数据量庞大且成本低，支持从video diffusion获取3D。</p>
+
+            <h3 id="ch5-4">语音</h3>
+            <p class="content-text">Audio比较局限，Omni更本质一些。目前语音音色克隆基本完成，难点在语音的情绪控制。</p>
+
+            <h3 id="ch5-5">世界模型</h3>
+            <p class="content-text">世界模型和视频生成关联：世界模型更强调稳定性和反馈，是视频模型的拓展。世界模型的难点：数据难点权重更大，算法难点也有。</p>
+
+            <h3 id="ch5-6">强化学习</h3>
+            <p class="content-text">强化学习当前训练范式存在泛化性差的问题，模型难以理解物理法则，这是需要突破的关键点，未来可能结合世界模型。</p>
+
+            <h3 id="ch5-7">VLA</h3>
+            <p class="content-text">VLA 与世界模型现阶段性能相近，VLA 略占优势，当前核心瓶颈是推理速度慢。</p>
+            <p class="content-text"><strong>主要原因：</strong>基础底座模型体量过大，算法冗余，底座仅需输出表征即可，无需跑完整套推理流程。</p>
+            <p class="content-text"><strong>优化方向：</strong>精简算法逻辑，落地流式推理、KV 缓存等技术提速。</p>
+            <p class="content-text">VLA和World Model本质区别不大，值得探索，后期会协同发展共同进步，距离落地还有一定的距离，目前来看算力和硬件问题比较大。Agent后续发展：VLA后续可以变成agent的skill。</p>
+
+            <h3 id="ch5-8">具身</h3>
+            <p class="content-text">未来落地场景工业需求会比较少，家庭内部需求比较大。</p>
+        </section>
+
+        <!-- 第6章：论文分区 -->
+        <section class="section" id="ch6">
+            <h2>第6章 论文分区</h2>
+            <p class="content-text">会议高于期刊，SCI只评期刊，CCF评会议加期刊。</p>
+
+            <h3 id="ch6-1">CCF分级</h3>
+            <p class="content-text"><strong>优先级：</strong></p>
+            <ul style="color:var(--text-secondary);font-size:14px;padding-left:20px;margin-bottom:16px;">
+                <li><strong>CCF A顶会</strong>（顶尖突破，天花板成果）</li>
+                <li><strong>CCF B顶会 / T1期刊</strong>（优质高水平，主流评优成果）</li>
+                <li><strong>CCF C会议 / T2期刊</strong>（达标优质，毕业刚需成果）</li>
+                <li><strong>T3期刊</strong>（基础合格，保底成果）</li>
+            </ul>
+
+            <!-- CCF表格 -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>等级类型</th>
+                            <th>档次</th>
+                            <th>难度</th>
+                            <th>学术认可度 &amp; 适用场景</th>
+                            <th>对标中科院SCI分区</th>
+                            <th>典型代表</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">CCF会议<br>(计算机核心)</td>
+                            <td>A类顶会</td>
+                            <td>极高，录用率10%~20%</td>
+                            <td>顶级硬核成果</td>
+                            <td>1区Top顶刊</td>
+                            <td>AI/ML：NeurIPS、ICML、ICLR<br>CV：CVPR、ICCV<br>系统：SOSP、OSDI<br>网络：SIGCOMM<br>安全：S&amp;P、CCS<br>数据库：SIGMOD、VLDB、KDD</td>
+                        </tr>
+                        <tr>
+                            <td>B类会议</td>
+                            <td>中高，录用率20%~35%</td>
+                            <td>硕博毕业</td>
+                            <td>1区/2区顶刊</td>
+                            <td>CV：ECCV、ACCV<br>网络：INFOCOM<br>软件工程：ASE、ISSTA<br>AI：IJCAI、ECAI<br>安全：NDSS<br>数据库：ICDE、CIKM</td>
+                        </tr>
+                        <tr>
+                            <td>C类会议</td>
+                            <td>中等，录用率35%~50%</td>
+                            <td>满足基础毕业、项目结项要求</td>
+                            <td>2~3区</td>
+                            <td>各领域专项主流国际会议</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">CCF期刊<br>(计算机专属)</td>
+                            <td>T1期刊</td>
+                            <td>高</td>
+                            <td>顶级期刊成果，用于硕博优质毕业</td>
+                            <td>1区Top/1区</td>
+                            <td>计算机领域国际顶级权威期刊</td>
+                        </tr>
+                        <tr>
+                            <td>T2期刊</td>
+                            <td>中等</td>
+                            <td>满足毕业、评奖、普通项目成果认定需求</td>
+                            <td>2区</td>
+                            <td>计算机领域核心优质中外期刊</td>
+                        </tr>
+                        <tr>
+                            <td>T3期刊</td>
+                            <td>中等偏低</td>
+                            <td>保底达标成果</td>
+                            <td>3~4区</td>
+                            <td>计算机领域正规基础学术期刊</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="ch6-2">SCI分区</h3>
+            <p class="content-text">JCR Q1 ≠ 中科院1区；大量JCR Q1期刊仅为中科院2区，中科院1区含金量远高于JCR Q1。</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>分区体系</th>
+                            <th>等级档位</th>
+                            <th>划分比例（核心规则）</th>
+                            <th>认可度场景</th>
+                            <th>水平定位</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td rowspan="4">中科院分区<br>（国内通用）</td><td>1区（含Top）</td><td>学科前 5%</td><td>最高标准</td><td>领域顶级顶刊，含金量极高</td></tr>
+                        <tr><td>2区</td><td>6%~20%</td><td>满足绝大多数硕博毕业</td><td>高水平优质期刊，科研主流成果</td></tr>
+                        <tr><td>3区</td><td>21%~50%</td><td>基础达标</td><td>中等正规SCI期刊</td></tr>
+                        <tr><td>4区</td><td>51%~100%</td><td>认可度低</td><td>SCI入门保底期刊</td></tr>
+                        <tr><td rowspan="4">JCR分区<br>（国际通用）</td><td>Q1</td><td>前 25%</td><td>海外留学、国际发表、外企评审</td><td>国际优质期刊（范围很广）</td></tr>
+                        <tr><td>Q2</td><td>25%~50%</td><td>国际认可、国内达标</td><td>国际中等偏上期刊</td></tr>
+                        <tr><td>Q3</td><td>50%~75%</td><td>认可度一般</td><td>国际中下游期刊</td></tr>
+                        <tr><td>Q4</td><td>75%~100%</td><td>认可度偏低</td><td>国际末尾SCI期刊</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 第7章：模型学习笔记 -->
+        <section class="section" id="ch7">
+            <h2>第7章 模型学习笔记</h2>
+
+            <!-- 7.1 Seedance 2.0 -->
+            <h3 id="ch7-1">Seedance 2.0（2026.2.12）</h3>
+            <div class="note-detail">
+                <h4>研究背景与现存痛点</h4>
+                <ul class="note-list">
+                    <li>多数模型仅支持文本单条件输入，多图/多视频/多音频参考约束能力弱</li>
+                    <li>长视频帧间一致性差、人物形变、多物体交互违背物理规律</li>
+                    <li>音频多为后期拼接，音画节奏、口型、动作同步精度低</li>
+                    <li>缺少视频续写、局部修改、风格复刻等编辑能力，反复试错成本高</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>整体架构核心设计（双分支解耦扩散 DiT）</h4>
+                <ul class="note-list">
+                    <li><strong>语义先验分支：</strong>基于条件 DiT，统一编码文本、图片、参考视频、音频嵌入，锁定全局主体身份、构图、叙事语义</li>
+                    <li><strong>时空动态分支：</strong>3D 卷积增强 Shift-ViT，专职建模帧间运动、光流、物体交互、运动轨迹，抑制肢体扭曲、穿模、抖动伪影</li>
+                    <li><strong>跨分支门控注意力 CBGA：</strong>在每个扩散去噪步动态融合两路特征，前期侧重语义结构，后期细化运动与纹理细节</li>
+                    <li><strong>原生音视频联合建模头：</strong>视频隐空间与音频频谱嵌入共享时序编码器，实现画面动作、节拍、环境音效毫秒级对齐</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>输入规格与基础生成规格</h4>
+                <ul class="note-list">
+                    <li>输入模态：文本、图像、音频、视频四模态原生支持</li>
+                    <li>输出：4~15 秒音视频，分辨率 480p / 720p</li>
+                    <li>版本分支：标准版（高质量生成）、Seedance 2.0 Fast（低延迟快速迭代）</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>四大核心技术能力</h4>
+                <ul class="note-list">
+                    <li><strong>画面仿真度更高：</strong>遵循人体动作规则、现实物理规则，减少人物畸形、浮空、物体穿模bug；可做多人物互动、运镜光影变化</li>
+                    <li><strong>生成自由度高：</strong>支持文字、图片、参考视频三种方式生成视频；可固定人物长相、照搬动作风格、自定义镜头动作</li>
+                    <li><strong>音视频一体生成：</strong>不用后期配音，模型直接同步生成人声、背景音乐、环境音效，人物对口型、动作贴合音乐节奏</li>
+                    <li><strong>适配商用批量使用：</strong>优化运行速度与算力消耗，运行成本更低；可用于广告短视频、电商实拍、影视动画、自媒体批量做视频</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>评测结论</h4>
+                <p style="color:var(--text-secondary);font-size:14px;">对比 Seedance 1.5 Pro、Kling 2.6/3.0、Sora 2 Pro、Veo 3.1 等主流模型：</p>
+                <ul class="note-list">
+                    <li>在文生视频、图生视频、参考视频复刻三大核心任务综合指标全部 SOTA</li>
+                    <li>帧一致性、人物保真、运动自然度、音画同步、复杂叙事可控性领先明显</li>
+                    <li>Fast 版本在大幅压缩时延前提下，保留绝大多数可控能力，兼顾速度与效果</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>模型大小</h4>
+                <ul class="note-list">
+                    <li><strong>标准版：</strong>总参数量 17B，双分支拆分部署，显存占用高，适配云端高性能显卡部署</li>
+                    <li><strong>Fast 极速版：</strong>轻量化裁剪至 9B 参数量，裁剪冗余时序算子，降低显存占用，提速生成</li>
+                </ul>
+            </div>
+
+            <!-- 7.2 Seedream 5.0 Lite -->
+            <h3 id="ch7-2">Seedream 5.0 Lite（2026.2.13）</h3>
+            <div class="note-detail">
+                <h4>研究背景</h4>
+                <p style="color:var(--text-secondary);font-size:14px;">前身Seedream4.5画质优秀，但出图慢、成本高，无逻辑推理、时效生成能力；市面主流图像模型时效缺失、构图文字易出错，高低端模型速度成本失衡、部署繁琐。字节推出Lite版，舍弃极致画质，主打提速降本、补齐推理联网能力，适配批量商用。</p>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>输入输出规格</h4>
+                <ul class="note-list">
+                    <li>输入：超长文本提示词、最多14张参考图、蒙版局部编辑、多轮对话改图；全主流画幅适配</li>
+                    <li>输出：原生3072×3072高清图，最高支持4K；2K出图2-4s/张，联网模式3-5s/张</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>模型独有核心优势</h4>
+                <ul class="note-list">
+                    <li><strong>CoT视觉思维推理：</strong>生成前自主校验空间透视、人体结构、物理逻辑，大幅规避构图崩坏</li>
+                    <li><strong>原生实时联网RAG检索：</strong>打破模型训练知识截止限制，可生成热点、赛事、行情、时效资讯配图</li>
+                    <li><strong>商用级文字渲染能力：</strong>中英混排、海报大字、多行排版准确率同级SOTA</li>
+                    <li><strong>超强多图一致性：</strong>支持14图融合参考，IP人设、画风、道具可长效锁定</li>
+                    <li><strong>轻量化全能低成本：</strong>相比Seedream4.5体积精简30%、提速2倍、成本降低12%</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>模型体量与部署</h4>
+                <ul class="note-list">
+                    <li>参数量：<strong>18B（180亿参数）</strong>中量级DiT蒸馏模型</li>
+                    <li>对比：SDXL 10B、Flux Schnell 12B、Seedream4.5旗舰版32B</li>
+                    <li>相较32B旗舰版本参数压缩44%、权重体积精简30%</li>
+                    <li>硬件：2K生成显存8-12GB，单卡A800/A100即可私有化部署</li>
+                </ul>
+            </div>
+
+            <!-- 7.3 Seed3D 2.0 -->
+            <h3 id="ch7-3">Seed3D 2.0（2026.4.23）</h3>
+            <div class="note-detail">
+                <h4>研究背景与现存痛点</h4>
+                <ul class="note-list">
+                    <li>传统AI三维模型结构破损、造型扭曲，建模精度达不到商用标准</li>
+                    <li>材质贴图失真，各类物料质感区分模糊，光影效果违和</li>
+                    <li>生成模型无法拆分零件、绑定关节，不能直接做动画仿真</li>
+                    <li>旧版建模速度慢、算力消耗大，无法适配游戏、工业批量建模</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>整体架构核心设计（两段式精细化MoE架构）</h4>
+                <ul class="note-list">
+                    <li><strong>粗建模分支：</strong>搭建物体三维外形骨架，锁定整体造型尺寸</li>
+                    <li><strong>精建模分支：</strong>细化镂空、凹凸细节，修复模型破损穿插问题</li>
+                    <li><strong>材质生成分支：</strong>一键生成真实材质贴图，区分金属、布艺等质感</li>
+                    <li><strong>仿真适配分支：</strong>自动拆分零件、生成关节，适配动画物理交互</li>
+                </ul>
+            </div>
+            <div class="note-detail" style="margin-top:16px;">
+                <h4>评测结论与模型创新点</h4>
+                <ul class="note-list">
+                    <li>三维建模、材质生成综合性能行业顶尖</li>
+                    <li>粗细两段式MoE架构，提升高分辨率材质的细节与边界精度</li>
+                    <li>引入 VLM 先验，增强未知光照下的材质分解稳定性</li>
+                    <li>一体化PBR材质生成，一次性生成全套质感贴图</li>
+                    <li>自带部件拆分+关节自动绑定，生成模型可直接用于动画、仿真交互</li>
+                    <li>激活参数量 13B，需中端云端显卡部署</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            知识沉淀 · 多模态大模型知识体系 · 持续更新中
+        </footer>
+    </main>
+
+    <!-- 回到顶部按钮 -->
+    <button class="back-to-top" id="backToTop" aria-label="回到顶部">↑</button>
+
+    <!-- 图片灯箱 -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <img id="lightboxImg" src="" alt="放大查看" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- ==================== JavaScript ==================== -->
+    <script>
+        // ===== 滚动进度条 =====
+        const scrollProgress = document.getElementById('scrollProgress');
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+            scrollProgress.style.width = progress + '%';
+        });
+
+        // ===== 图片灯箱 =====
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                closeLightbox();
+            }
+        });
+        // 主题切换
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // 从 localStorage 读取主题设置
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        themeToggle.textContent = savedTheme === 'light' ? '☀️' : '🌙';
+
+        themeToggle.addEventListener('click', () => {
+            const current = html.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', next);
+            themeToggle.textContent = next === 'light' ? '☀️' : '🌙';
+            localStorage.setItem('theme', next);
+        });
+
+        // 侧边栏导航高亮
+        const sidebar = document.getElementById('sidebar');
+        const navItems = sidebar.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('.section, [id^="ch"][id$="-"]');
+
+        function updateActiveNav() {
+            let currentId = '';
+            const scrollPos = window.scrollY + 100;
+
+            sections.forEach(section => {
+                if (section.offsetTop <= scrollPos) {
+                    currentId = section.id;
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === '#' + currentId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', updateActiveNav);
+
+        // 点击导航项平滑滚动
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = item.getAttribute('href').substring(1);
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    // 移动端关闭侧边栏
+                    sidebar.classList.remove('open');
+                }
+            });
+        });
+
+        // 移动端菜单切换
+        const menuToggle = document.getElementById('menuToggle');
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // 点击内容区关闭侧边栏
+        document.querySelector('.main-content').addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
+
+        // 回到顶部按钮
+        const backToTop = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
