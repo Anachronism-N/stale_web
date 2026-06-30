@@ -1,5 +1,7 @@
 # Stale's Knowledge Base
 
+> 🌐 **在线访问**：[https://anachronism-n.github.io/stale_web/](https://anachronism-n.github.io/stale_web/)
+
 基于 React + Vite + Tailwind CSS 构建的知识沉淀站点，用于展示多模态大模型相关的内容。
 
 ---
